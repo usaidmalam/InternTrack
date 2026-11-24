@@ -8,21 +8,19 @@ function App() {
     // Store job applications
     const [applications, setApplications] = useState([])
 
-    // Store form information
+    // Form information
     const [company, setCompany] = useState("")
     const [position, setPosition] = useState("")
     const [status, setStatus] = useState("Applied")
     const [dateApplied, setDateApplied] = useState("")
     const [notes, setNotes] = useState("")
 
-    // Store the application being edited
     const [editingId, setEditingId] = useState(null)
 
-    // Search and filter
+    // Search and filtering
     const [search, setSearch] = useState("")
     const [filter, setFilter] = useState("All")
 
-    // Store error messages
     const [error, setError] = useState("")
 
     // Get applications from the backend
@@ -67,7 +65,6 @@ function App() {
         let url = API_URL
         let method = "POST"
 
-        // Use PUT when editing
         if (editingId !== null) {
             url = url + "/" + editingId
             method = "PUT"
@@ -103,7 +100,7 @@ function App() {
         setEditingId(null)
     }
 
-    // Load an application into the form
+    // Edit an application
     function editApplication(application) {
         setCompany(application.company)
         setPosition(application.position)
@@ -139,7 +136,34 @@ function App() {
         }
     }
 
-    // Calculate dashboard statistics
+    // Download applications as a CSV file
+    async function exportApplications() {
+        try {
+            const response = await fetch(API_URL + "/export")
+
+            if (!response.ok) {
+                throw new Error("Export failed")
+            }
+
+            const file = await response.blob()
+            const url = URL.createObjectURL(file)
+
+            const link = document.createElement("a")
+            link.href = url
+            link.download = "applications.csv"
+
+            document.body.appendChild(link)
+            link.click()
+            link.remove()
+
+            URL.revokeObjectURL(url)
+            setError("")
+        } catch {
+            setError("Could not export applications.")
+        }
+    }
+
+    // Dashboard statistics
     const total = applications.length
 
     const applied = applications.filter(
@@ -178,12 +202,10 @@ function App() {
                 <p>Manage and track your job applications.</p>
             </header>
 
-            {/* Error message */}
             {error && (
                 <p className="error-message">{error}</p>
             )}
 
-            {/* Dashboard statistics */}
             <div className="dashboard">
 
                 <div className="stat-card">
@@ -282,7 +304,6 @@ function App() {
 
             <h2>Job Applications</h2>
 
-            {/* Search and filter controls */}
             <div className="filter-container">
 
                 <input
@@ -304,6 +325,10 @@ function App() {
                     <option>Offer</option>
                     <option>Rejected</option>
                 </select>
+
+                <button onClick={exportApplications}>
+                    Export CSV
+                </button>
 
             </div>
 

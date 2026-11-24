@@ -1,13 +1,16 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from pathlib import Path
+from database import create_database
 import sqlite3
+import csv
+import io
 
 app = Flask(__name__)
 CORS(app)
 
-# Find the database in the backend folder
 DB_PATH = Path(__file__).parent / "applications.db"
+
 
 # Connect to the database
 def get_db():
@@ -22,7 +25,7 @@ def home():
     return {"message": "InternTrack API is running"}
 
 
-# Get all job applications
+# Get all applications
 @app.route("/applications", methods=["GET"])
 def get_applications():
     connection = get_db()
@@ -36,12 +39,11 @@ def get_applications():
     return jsonify([dict(row) for row in applications])
 
 
-# Add a new job application
+# Add an application
 @app.route("/applications", methods=["POST"])
 def add_application():
     data = request.get_json(silent=True)
 
-    # Check required information
     if not isinstance(data, dict):
         return {"error": "Invalid application data"}, 400
 
@@ -69,12 +71,12 @@ def add_application():
 
     return {"message": "Application added successfully"}, 201
 
-# Update a job application
+
+# Update an application
 @app.route("/applications/<int:id>", methods=["PUT"])
 def update_application(id):
     data = request.get_json(silent=True)
 
-    # Check required information
     if not isinstance(data, dict):
         return {"error": "Invalid application data"}, 400
 
@@ -100,6 +102,7 @@ def update_application(id):
     ))
 
     updated = cursor.rowcount
+
     connection.commit()
     connection.close()
 
@@ -108,15 +111,20 @@ def update_application(id):
 
     return {"message": "Application updated successfully"}
 
-# Delete a job application
+
+# Delete an application
 @app.route("/applications/<int:id>", methods=["DELETE"])
 def delete_application(id):
     connection = get_db()
     cursor = connection.cursor()
 
-    cursor.execute("DELETE FROM applications WHERE id = ?", (id,))
+    cursor.execute(
+        "DELETE FROM applications WHERE id = ?",
+        (id,)
+    )
 
     deleted = cursor.rowcount
+
     connection.commit()
     connection.close()
 
@@ -125,6 +133,61 @@ def delete_application(id):
 
     return {"message": "Application deleted successfully"}
 
+
+# Prevent spreadsheet formulas from running
+def safe_csv_value(value):
+    if isinstance(value, str):
+        if value.lstrip().startswith(("=", "+", "-", "@")):
+            return "'" + value
+
+    return value
+
+
+# Export applications as a CSV file
+@app.route("/applications/export", methods=["GET"])
+def export_applications():
+    connection = get_db()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT company, position, status, date_applied, notes
+        FROM applications
+    """)
+
+    applications = cursor.fetchall()
+    connection.close()
+
+    # Create the CSV in memory
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Write column headings
+    writer.writerow([
+        "Company",
+        "Position",
+        "Status",
+        "Date Applied",
+        "Notes"
+    ])
+
+    # Write each application
+    for application in applications:
+        writer.writerow([
+            safe_csv_value(value) for value in application
+        ])
+
+    # Return the CSV as a downloadable file
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition":
+                "attachment; filename=applications.csv"
+        }
+    )
+
+
 # Start the server
 if __name__ == "__main__":
+    create_database(DB_PATH)
     app.run(debug=True, port=8000)
