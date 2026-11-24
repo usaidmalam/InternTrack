@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
+const API_URL = "http://127.0.0.1:8000/applications"
+
 function App() {
 
     // Store job applications
@@ -13,14 +15,31 @@ function App() {
     const [dateApplied, setDateApplied] = useState("")
     const [notes, setNotes] = useState("")
 
-    // Store the ID of the application being edited
+    // Store the application being edited
     const [editingId, setEditingId] = useState(null)
+
+    // Search and filter
+    const [search, setSearch] = useState("")
+    const [filter, setFilter] = useState("All")
+
+    // Store error messages
+    const [error, setError] = useState("")
 
     // Get applications from the backend
     async function getApplications() {
-        const response = await fetch("http://127.0.0.1:8000/applications")
-        const data = await response.json()
-        setApplications(data)
+        try {
+            const response = await fetch(API_URL)
+
+            if (!response.ok) {
+                throw new Error("Could not load applications")
+            }
+
+            const data = await response.json()
+            setApplications(data)
+            setError("")
+        } catch {
+            setError("Could not connect to the backend.")
+        }
     }
 
     // Load applications when the website opens
@@ -30,41 +49,48 @@ function App() {
 
     // Add or update an application
     async function addApplication(event) {
-
         event.preventDefault()
 
         const application = {
-            company: company,
-            position: position,
+            company: company.trim(),
+            position: position.trim(),
             status: status,
             date_applied: dateApplied,
             notes: notes
         }
 
-        let url = "http://127.0.0.1:8000/applications"
+        if (!application.company || !application.position) {
+            setError("Company and position are required.")
+            return
+        }
+
+        let url = API_URL
         let method = "POST"
 
-        // Use PUT when editing an application
+        // Use PUT when editing
         if (editingId !== null) {
             url = url + "/" + editingId
             method = "PUT"
         }
 
-        const response = await fetch(url, {
-            method: method,
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(application)
-        })
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(application)
+            })
 
-        if (!response.ok) {
-            alert("Could not save application")
-            return
+            if (!response.ok) {
+                throw new Error("Could not save application")
+            }
+
+            clearForm()
+            getApplications()
+        } catch {
+            setError("Could not save application.")
         }
-
-        clearForm()
-        getApplications()
     }
 
     // Clear the form
@@ -94,29 +120,98 @@ function App() {
             return
         }
 
-        const response = await fetch(
-            "http://127.0.0.1:8000/applications/" + id,
-            {
+        try {
+            const response = await fetch(API_URL + "/" + id, {
                 method: "DELETE"
+            })
+
+            if (!response.ok) {
+                throw new Error("Could not delete application")
             }
-        )
 
-        if (!response.ok) {
-            alert("Could not delete application")
-            return
+            if (editingId === id) {
+                clearForm()
+            }
+
+            getApplications()
+        } catch {
+            setError("Could not delete application.")
         }
-
-        if (editingId === id) {
-            clearForm()
-        }
-
-        getApplications()
     }
+
+    // Calculate dashboard statistics
+    const total = applications.length
+
+    const applied = applications.filter(
+        app => app.status === "Applied"
+    ).length
+
+    const interviews = applications.filter(
+        app => app.status === "Interview"
+    ).length
+
+    const offers = applications.filter(
+        app => app.status === "Offer"
+    ).length
+
+    const rejected = applications.filter(
+        app => app.status === "Rejected"
+    ).length
+
+    // Search and filter applications
+    const filteredApplications = applications.filter(app => {
+
+        const matchesSearch =
+            app.company.toLowerCase().includes(search.toLowerCase()) ||
+            app.position.toLowerCase().includes(search.toLowerCase())
+
+        const matchesFilter =
+            filter === "All" || app.status === filter
+
+        return matchesSearch && matchesFilter
+    })
 
     return (
         <div>
-            <h1>InternTrack</h1>
-            <p>Manage and track your job applications.</p>
+            <header>
+                <h1>InternTrack</h1>
+                <p>Manage and track your job applications.</p>
+            </header>
+
+            {/* Error message */}
+            {error && (
+                <p className="error-message">{error}</p>
+            )}
+
+            {/* Dashboard statistics */}
+            <div className="dashboard">
+
+                <div className="stat-card">
+                    <p>Total Applications</p>
+                    <h2>{total}</h2>
+                </div>
+
+                <div className="stat-card applied-card">
+                    <p>Applied</p>
+                    <h2>{applied}</h2>
+                </div>
+
+                <div className="stat-card interview-card">
+                    <p>Interviews</p>
+                    <h2>{interviews}</h2>
+                </div>
+
+                <div className="stat-card offer-card">
+                    <p>Offers</p>
+                    <h2>{offers}</h2>
+                </div>
+
+                <div className="stat-card rejected-card">
+                    <p>Rejected</p>
+                    <h2>{rejected}</h2>
+                </div>
+
+            </div>
 
             <h2>
                 {editingId !== null ? "Edit Application" : "Add Application"}
@@ -187,7 +282,34 @@ function App() {
 
             <h2>Job Applications</h2>
 
-            <p>Total applications: {applications.length}</p>
+            {/* Search and filter controls */}
+            <div className="filter-container">
+
+                <input
+                    type="text"
+                    placeholder="Search company or position..."
+                    aria-label="Search applications"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                />
+
+                <select
+                    aria-label="Filter by status"
+                    value={filter}
+                    onChange={e => setFilter(e.target.value)}
+                >
+                    <option value="All">All Statuses</option>
+                    <option>Applied</option>
+                    <option>Interview</option>
+                    <option>Offer</option>
+                    <option>Rejected</option>
+                </select>
+
+            </div>
+
+            <p className="results-count">
+                Showing {filteredApplications.length} of {total} applications
+            </p>
 
             <div className="table-container">
                 <table>
@@ -203,11 +325,29 @@ function App() {
                     </thead>
 
                     <tbody>
-                        {applications.map(application => (
+
+                        {filteredApplications.length === 0 && (
+                            <tr>
+                                <td colSpan="6">
+                                    No applications found.
+                                </td>
+                            </tr>
+                        )}
+
+                        {filteredApplications.map(application => (
                             <tr key={application.id}>
+
                                 <td>{application.company}</td>
                                 <td>{application.position}</td>
-                                <td>{application.status}</td>
+
+                                <td>
+                                    <span className={
+                                        "status " + application.status.toLowerCase()
+                                    }>
+                                        {application.status}
+                                    </span>
+                                </td>
+
                                 <td>{application.date_applied}</td>
                                 <td>{application.notes}</td>
 
@@ -226,8 +366,10 @@ function App() {
                                         Delete
                                     </button>
                                 </td>
+
                             </tr>
                         ))}
+
                     </tbody>
                 </table>
             </div>

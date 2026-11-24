@@ -1,6 +1,6 @@
 /* Main page layout */
 #root {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 40px;
     text-align: center;
@@ -16,32 +16,51 @@ h2 {
     margin-top: 30px;
 }
 
-/* Application table */
-.table-container {
-    overflow-x: auto;
+header p {
+    color: #9ca3af;
 }
 
-table {
-    width: 100%;
-    margin: 25px auto;
-    border-collapse: collapse;
+/* Dashboard layout */
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin: 35px 0;
 }
 
-/* Table headings and cells */
-th, td {
-    padding: 15px 20px;
-    text-align: center;
-    border-bottom: 1px solid #374151;
-}
-
-th {
+/* Dashboard cards */
+.stat-card {
     background-color: #252c38;
-    color: white;
+    border: 1px solid #374151;
+    border-radius: 10px;
+    padding: 20px;
 }
 
-/* Highlight rows */
-tbody tr:hover {
-    background-color: #252c38;
+.stat-card p {
+    color: #9ca3af;
+    font-size: 14px;
+    margin: 0;
+}
+
+.stat-card h2 {
+    font-size: 32px;
+    margin: 12px 0 0;
+}
+
+.applied-card h2 {
+    color: #60a5fa;
+}
+
+.interview-card h2 {
+    color: #fbbf24;
+}
+
+.offer-card h2 {
+    color: #4ade80;
+}
+
+.rejected-card h2 {
+    color: #f87171;
 }
 
 /* Application form */
@@ -66,6 +85,10 @@ input, select {
     color-scheme: dark;
 }
 
+input:focus, select:focus {
+    outline: 2px solid #2563eb;
+}
+
 /* Buttons */
 button {
     padding: 12px 20px;
@@ -79,6 +102,81 @@ button {
 
 button:hover {
     background-color: #1d4ed8;
+}
+
+/* Search and filtering */
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.filter-container input {
+    flex: 1;
+    min-width: 0;
+}
+
+.results-count {
+    text-align: left;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+/* Application table */
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    margin: 15px auto;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 15px 20px;
+    text-align: center;
+    border-bottom: 1px solid #374151;
+}
+
+th {
+    background-color: #252c38;
+    color: white;
+}
+
+tbody tr:hover {
+    background-color: #252c38;
+}
+
+/* Application status labels */
+.status {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.applied {
+    background-color: #1e3a5f;
+    color: #93c5fd;
+}
+
+.interview {
+    background-color: #493b16;
+    color: #fbbf24;
+}
+
+.offer {
+    background-color: #163e2b;
+    color: #86efac;
+}
+
+.rejected {
+    background-color: #4c2020;
+    color: #fca5a5;
 }
 
 /* Edit button */
@@ -118,4 +216,27 @@ th:nth-child(4), td:nth-child(4) {
 /* Keep action buttons together */
 td:last-child {
     white-space: nowrap;
+}
+
+/* Error messages */
+.error-message {
+    background-color: #4c2020;
+    color: #fca5a5;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+/* Smaller screens */
+@media (max-width: 600px) {
+    #root {
+        padding: 20px;
+    }
+
+    form input, form select, form button {
+        width: 100%;
+    }
+
+    .filter-container {
+        flex-direction: column;
+    }
 }
