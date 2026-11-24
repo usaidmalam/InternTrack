@@ -1,0 +1,121 @@
+/* Main page layout */
+#root {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px;
+    text-align: center;
+}
+
+/* Page headings */
+h1 {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+h2 {
+    margin-top: 30px;
+}
+
+/* Application table */
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    margin: 25px auto;
+    border-collapse: collapse;
+}
+
+/* Table headings and cells */
+th, td {
+    padding: 15px 20px;
+    text-align: center;
+    border-bottom: 1px solid #374151;
+}
+
+th {
+    background-color: #252c38;
+    color: white;
+}
+
+/* Highlight rows */
+tbody tr:hover {
+    background-color: #252c38;
+}
+
+/* Application form */
+form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    padding: 25px;
+    background-color: #252c38;
+    border-radius: 10px;
+}
+
+/* Form inputs */
+input, select {
+    padding: 12px;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    background-color: #161922;
+    color: white;
+    font-size: 15px;
+    color-scheme: dark;
+}
+
+/* Buttons */
+button {
+    padding: 12px 20px;
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #1d4ed8;
+}
+
+/* Edit button */
+.edit-button {
+    background-color: #2563eb;
+    margin: 4px;
+}
+
+.edit-button:hover {
+    background-color: #1d4ed8;
+}
+
+/* Delete button */
+.delete-button {
+    background-color: #dc2626;
+    margin: 4px;
+}
+
+.delete-button:hover {
+    background-color: #b91c1c;
+}
+
+/* Cancel button */
+.cancel-button {
+    background-color: #6b7280;
+}
+
+.cancel-button:hover {
+    background-color: #4b5563;
+}
+
+/* Keep dates on one line */
+th:nth-child(4), td:nth-child(4) {
+    white-space: nowrap;
+}
+
+/* Keep action buttons together */
+td:last-child {
+    white-space: nowrap;
+}

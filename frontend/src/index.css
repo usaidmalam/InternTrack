@@ -1,0 +1,11 @@
+/* Global website styling */
+body {
+    margin: 0;
+    background-color: #161922;
+    color: #e5e7eb;
+    font-family: Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
